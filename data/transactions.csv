@@ -1,0 +1,11 @@
+transaction_id,product
+1,Milk
+1,Bread
+2,Milk
+2,Diapers
+2,Beer
+3,Bread
+3,Diapers
+4,Milk
+4,Bread
+4,Diapers

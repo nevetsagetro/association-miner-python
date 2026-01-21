@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from itertools import combinations
-from fpdf import FPDF
 import seaborn as sns
 import sys 
 import os
@@ -141,71 +140,106 @@ def print_strategic_insights(rules):
         print(f"   - Value: This link is {row['lift']:.1f}x stronger than random.\n")
 
 def create_visualizations(df, rules):
-    """Genera dos gráficos distintos para el reporte final."""
+    """
+    Genera un dashboard profesional de gran tamaño, priorizando el mapa estratégico.
+    Layout: Scatter Plot arriba (grande), Bar Chart y Heatmap abajo (pequeños).
+    """
     sns.set_theme(style="whitegrid")
     
-    # Gráfico 1: Los más vendidos (Tu visual original mejorado)
-    plt.figure(figsize=(10, 5))
-    top_10 = df['product'].value_counts().head(10).reset_index()
-    top_10.columns = ['product', 'count']
-    sns.barplot(data=top_10, x='count', y='product', hue='product', palette='viridis', legend=False)
-    plt.title('Top 10 Most Frequent Products')
-    plt.savefig("top_products_frequency.png")
-    plt.close()
+    # Configuramos una figura GRANDE
+    fig = plt.figure(figsize=(20, 16))
+    
+    # GridSpec con height_ratios para que la fila de arriba sea más alta (el héroe)
+    # height_ratios=[1.5, 1] significa que la fila 0 es 1.5 veces más alta que la fila 1
+    grid = plt.GridSpec(2, 2, wspace=0.2, hspace=0.25, height_ratios=[1.5, 1])
 
-    # Gráfico 2: Análisis de Relaciones (Si existen reglas)
-    if not rules.empty:
-        plt.figure(figsize=(12, 8))
-        # Usamos un scatter plot donde el color y el tamaño dependen del LIFT
-        scatter = sns.scatterplot(
-            data=rules, 
-            x="support", 
-            y="confidence", 
-            size="lift", 
-            hue="lift", 
-            palette="YlOrRd", # Colores de "calor": amarillo a rojo
-            sizes=(100, 1000),
-            alpha=0.7,
-            edgecolor="black"
+    
+    # ZONA 1 (ARRIBA, ANCHO COMPLETO): EL MAPA ESTRATÉGICO (LA MAGIA)
+
+    ax_main = fig.add_subplot(grid[0, :]) # Ocupa toda la fila 0
+
+    if rules.empty:
+        # Si no hay reglas, mostramos un mensaje en el área principal
+        ax_main.text(0.5, 0.5, "No significant associations found to plot.\nTry a larger dataset.", 
+                     ha='center', va='center', fontsize=16, color='gray')
+    else:
+        # Scatter plot principal
+        sns.scatterplot(
+            data=rules, x="support", y="confidence", size="lift", hue="lift", 
+            palette="YlOrRd", sizes=(80, 800), alpha=0.8, edgecolor="black", ax=ax_main
         )
         
-        # 1. LÍNEAS DE CUADRANTES (Basadas en el promedio)
+        # Líneas y Textos de Cuadrantes
         avg_support = rules['support'].mean()
         avg_confidence = rules['confidence'].mean()
+        ax_main.axvline(x=avg_support, color='gray', linestyle='--', alpha=0.5)
+        ax_main.axhline(y=avg_confidence, color='gray', linestyle='--', alpha=0.5)
         
-        plt.axvline(x=avg_support, color='gray', linestyle='--', alpha=0.5)
-        plt.axhline(y=avg_confidence, color='gray', linestyle='--', alpha=0.5)
-        
-        # 2. ETIQUETAS DE TEXTO PARA LOS CUADRANTES
-        plt.text(rules['support'].max()*0.85, 0.98, 'GOLDEN RULES (High Value)', fontsize=10, fontweight='bold', color='darkred')
-        plt.text(rules['support'].min(), 0.98, 'OPPORTUNITIES (Growth)', fontsize=10, fontweight='bold', color='darkblue')
-        plt.text(rules['support'].max()*0.85, rules['confidence'].min(), 'STAPLES (Regulars)', fontsize=10, fontweight='bold', color='darkgreen')
+        # Etiquetas estratégicas (ajustadas para el tamaño grande)
+        ax_main.text(rules['support'].max(), rules['confidence'].max(), 'GOLDEN RULES\n(High Value & Predictable)', 
+                     fontsize=12, fontweight='bold', color='darkred', ha='right', va='top')
+        ax_main.text(rules['support'].min(), rules['confidence'].max(), 'HIDDEN OPPORTUNITIES\n(Niche but Strong)', 
+                     fontsize=12, fontweight='bold', color='darkblue', ha='left', va='top')
+        ax_main.text(rules['support'].max(), rules['confidence'].min(), 'STAPLES\n(Frequent but Weak Link)', 
+                     fontsize=12, fontweight='bold', color='darkgreen', ha='right', va='bottom')
 
-        # 3. ANOTAR LOS TOP 5 PUNTOS (Los de mayor Lift)
+        # Anotar los Top 5 (con flechas para que se vea profesional)
         top_rules = rules.sort_values(by="lift", ascending=False).head(5)
         for i, row in top_rules.iterrows():
-            plt.annotate(
-                f"{row['item_A']}➔{row['item_B']}", 
-                (row['support'], row['confidence']),
-                textcoords="offset points", 
-                xytext=(0,12), 
-                ha='center', 
-                fontsize=8,
-                fontweight='bold',
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8)
+            ax_main.annotate(
+                f"{row['item_A']} ➔ {row['item_B']}", 
+                xy=(row['support'], row['confidence']),
+                xytext=(0, 25), textcoords='offset points', ha='center',
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.2', color='black'),
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.9), fontweight='bold'
             )
 
-        # Personalización de títulos y ejes
-        plt.title('Strategic Association Map\n(How products relate to each other)', fontsize=16, fontweight='bold', pad=20)
-        plt.xlabel('SUPPORT (How popular is the combo?)', fontsize=11)
-        plt.ylabel('CONFIDENCE (How predictable is the link?)', fontsize=11)
-        
-        # Mejorar la leyenda
-        plt.legend(title="Lift (Relationship Strength)", loc="upper right", bbox_to_anchor=(1.25, 1))
-        
-        plt.tight_layout()
-        plt.savefig("association_map.png", dpi=300) 
-        plt.close()
+        ax_main.set_title('STRATEGIC ASSOCIATION MAP (The "Magic" Quadrants)', fontsize=18, fontweight='bold', color='#333333')
+        ax_main.set_xlabel('SUPPORT (How popular is the combo?)', fontsize=12, fontweight='bold')
+        ax_main.set_ylabel('CONFIDENCE (How predictable is the link?)', fontsize=12, fontweight='bold')
+        ax_main.legend(title="Lift Strength", loc='upper right', fontsize=10, title_fontsize=11, fancybox=True)
+
+
+
+    # ZONA 2 (ABAJO IZQUIERDA): TOP PRODUCTOS (Contexto)
+ 
+    ax_bottom_left = fig.add_subplot(grid[1, 0])
+    top_10 = df['product'].value_counts().head(10).reset_index()
+    top_10.columns = ['product', 'count']
+    sns.barplot(data=top_10, x='count', y='product', hue='product', palette='viridis', legend=False, ax=ax_bottom_left)
+    ax_bottom_left.set_title('Context: Top 10 Most Frequent Products', fontsize=14)
+    ax_bottom_left.set_xlabel('Total Transactions')
+    ax_bottom_left.set_ylabel('')
+
+
+
+    # ZONA 3 (ABAJO DERECHA): HEATMAP (Detalle de Intensidad)
+
+    ax_bottom_right = fig.add_subplot(grid[1, 1])
+    if rules.empty:
+         ax_bottom_right.axis('off')
+    else:
+        try:
+            # Usamos top 10 para que el heatmap no sea gigante
+            top_rules_heatmap = rules.head(10).copy()
+            pivot_table = top_rules_heatmap.pivot(index='item_A', columns='item_B', values='lift')
+            sns.heatmap(pivot_table, annot=True, fmt=".1f", cmap="YlGnBu", ax=ax_bottom_right, cbar_kws={'label': 'Lift Score'})
+            ax_bottom_right.set_title('Deep Dive: Relationship Intensity Heatmap', fontsize=14)
+            ax_bottom_right.set_xlabel('Consequent Product')
+            ax_bottom_right.set_ylabel('Antecedent Product')
+        except Exception as e:
+            ax_bottom_right.text(0.5, 0.5, f"Heatmap unavailable for this dataset data.\n({e})", ha='center', va='center')
+            ax_bottom_right.axis('off')
+
+    # Título Principal del Dashboard y Guardado
+    plt.suptitle("MARKET BASKET ANALYSIS: EXECUTIVE DASHBOARD", fontsize=24, fontweight='heavy', y=0.98)
+    
+    # Guardar con alta resolución y bordes ajustados
+    output_path = "executive_dashboard.png"
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', pad_inches=0.5)
+    plt.close()
+    print(f"\nExecutive Dashboard generated successfully: '{output_path}'")
+    print("   (Open the image to see the strategic analysis)")
 
 
 if __name__ == "__main__":

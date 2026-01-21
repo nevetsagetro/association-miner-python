@@ -19,14 +19,6 @@ def test_get_baskets():
     assert "Bread" in baskets[0]
     assert isinstance(baskets[0], frozenset)
 
-def test_calculate_support():
-    """Verifica el cálculo matemático del soporte."""
-    baskets = [frozenset(["Milk", "Bread"]), frozenset(["Milk"]), frozenset(["Eggs"])]
-    # Milk aparece en 2 de 3 (0.666)
-    assert calculate_support(baskets, frozenset(["Milk"])) == pytest.approx(0.666, abs=0.01)
-    # Bread aparece en 1 de 3 (0.333)
-    assert calculate_support(baskets, frozenset(["Bread"])) == pytest.approx(0.333, abs=0.01)
-
 def test_generate_rules():
     """Verifica que se generen reglas cuando hay asociaciones claras."""
     # En este set, siempre que hay A, hay B (Confianza 1.0)

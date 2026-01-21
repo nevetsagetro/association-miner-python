@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from itertools import combinations
+from fpdf import FPDF
 import seaborn as sns
 import sys 
 import os
@@ -154,14 +155,58 @@ def create_visualizations(df, rules):
 
     # Gráfico 2: Análisis de Relaciones (Si existen reglas)
     if not rules.empty:
-        plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(12, 8))
+        # Usamos un scatter plot donde el color y el tamaño dependen del LIFT
         scatter = sns.scatterplot(
-            data=rules, x="support", y="confidence", 
-            size="lift", hue="lift", palette="magma", sizes=(40, 400)
+            data=rules, 
+            x="support", 
+            y="confidence", 
+            size="lift", 
+            hue="lift", 
+            palette="YlOrRd", # Colores de "calor": amarillo a rojo
+            sizes=(100, 1000),
+            alpha=0.7,
+            edgecolor="black"
         )
-        plt.title('Association Analysis: Support vs Confidence (Size = Lift)')
-        plt.savefig("association_map.png")
+        
+        # 1. LÍNEAS DE CUADRANTES (Basadas en el promedio)
+        avg_support = rules['support'].mean()
+        avg_confidence = rules['confidence'].mean()
+        
+        plt.axvline(x=avg_support, color='gray', linestyle='--', alpha=0.5)
+        plt.axhline(y=avg_confidence, color='gray', linestyle='--', alpha=0.5)
+        
+        # 2. ETIQUETAS DE TEXTO PARA LOS CUADRANTES
+        plt.text(rules['support'].max()*0.85, 0.98, 'GOLDEN RULES (High Value)', fontsize=10, fontweight='bold', color='darkred')
+        plt.text(rules['support'].min(), 0.98, 'OPPORTUNITIES (Growth)', fontsize=10, fontweight='bold', color='darkblue')
+        plt.text(rules['support'].max()*0.85, rules['confidence'].min(), 'STAPLES (Regulars)', fontsize=10, fontweight='bold', color='darkgreen')
+
+        # 3. ANOTAR LOS TOP 5 PUNTOS (Los de mayor Lift)
+        top_rules = rules.sort_values(by="lift", ascending=False).head(5)
+        for i, row in top_rules.iterrows():
+            plt.annotate(
+                f"{row['item_A']}➔{row['item_B']}", 
+                (row['support'], row['confidence']),
+                textcoords="offset points", 
+                xytext=(0,12), 
+                ha='center', 
+                fontsize=8,
+                fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8)
+            )
+
+        # Personalización de títulos y ejes
+        plt.title('Strategic Association Map\n(How products relate to each other)', fontsize=16, fontweight='bold', pad=20)
+        plt.xlabel('SUPPORT (How popular is the combo?)', fontsize=11)
+        plt.ylabel('CONFIDENCE (How predictable is the link?)', fontsize=11)
+        
+        # Mejorar la leyenda
+        plt.legend(title="Lift (Relationship Strength)", loc="upper right", bbox_to_anchor=(1.25, 1))
+        
+        plt.tight_layout()
+        plt.savefig("association_map.png", dpi=300) 
         plt.close()
-        print("Two charts generated: 'top_products_frequency.png' and 'association_map.png'")
+
+
 if __name__ == "__main__":
     main()

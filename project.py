@@ -1,6 +1,7 @@
 import pandas as pd
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+import pyfiglet
 from itertools import combinations
 import seaborn as sns
 import sys
@@ -8,9 +9,10 @@ import os
 
 
 def main():
-    print("-" * 50)
-    print("--- 🛒 Association Miner | CS50 Final Project ---")
-    print("-" * 50)
+    # Guardamos el nombre en una variable
+    project_title = "Association Miner"
+    print_banner(project_title)
+    print("Welcome to the analysis tool.")
 
     # Load csv from my folder data
     # 1. request to my user only the anme of the file, should be in folder data/
@@ -81,6 +83,14 @@ def main():
     except Exception as e:
         sys.exit(f"Error unexpected: {e}")
 
+def print_banner(text):
+    """
+    Recibe un texto y lo imprime en formato ASCII art.
+    """
+    # Creamos el formato (puedes cambiar 'slant' por 'banner', 'block', etc.)
+    ascii_art = pyfiglet.figlet_format(text, font="slant")
+    print(ascii_art)
+    print("-" * 55)
 
 def load_data(file_path):
     """Load the CSV, drop the nulls and verified columns."""
@@ -337,6 +347,7 @@ def create_visualizations(df, rules):
     plt.close()
     print(f"\nExecutive Dashboard generated successfully: '{output_path}'")
     print(" (Open the image to see the strategic analysis)")
+    print("Make with <3 by Nevets Agetro\n")
 
 
 if __name__ == "__main__":

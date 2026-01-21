@@ -1,5 +1,5 @@
 # 🛒 Association Miner | CS50 Final Project
-#### Video Demo:  <https://www.youtube.com/watch?v=your_video_link_here>
+#### Video Demo:  [Watch the Video Demo here](https://www.nevets.com)
 #### Description:
 
 **Association Miner** is a specialized data science tool developed as my final project for CS50. It is designed to uncover hidden patterns and consumer behavior trends within retail transaction data. Based on the data mining principles of **Market Basket Analysis**, this project allows business owners and analysts to identify which products are frequently purchased together. 

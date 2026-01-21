@@ -43,6 +43,19 @@ def main():
 
         # Generate reports (Visual and CSV)
         if not rules.empty:
+            # 5. Reporte de Insights Estratégicos en CLI
+            print_strategic_insights(rules)
+            
+            # 6. Identificación del 'Hidden Gem'
+            hidden_gem = rules.sort_values(by="lift", ascending=False).iloc[0]
+            print(f"💎 HIDDEN GEM IDENTIFIED:")
+            print(f"   The link between '{hidden_gem['item_A']}' and '{hidden_gem['item_B']}'")
+            print(f"   is your strongest relationship (Lift: {hidden_gem['lift']:.2f}).\n")
+
+            # 7. Generar Visualizaciones Avanzadas
+            create_visualizations(df, rules)
+
+
             print(f"Found {len(rules)} strong relationships.")
             print("\n--- TOP RECOMMENDATION RULES (by lift) ---")
             print(rules[['item_A', 'item_B', 'support', 'confidence', 'lift']].head(5))
@@ -115,6 +128,16 @@ def calculate_support(baskets, itemset):
     count = sum(1 for basket in baskets if itemset.issubset(basket))
     return count / len(baskets)
 
+def print_strategic_insights(rules):
+    """Imprime un resumen legible de las mejores reglas."""
+    print("\n" + "="*50)
+    print("🎯 STRATEGIC BUSINESS INSIGHTS")
+    print("="*50)
+    for i, row in rules.head(3).iterrows():
+        conf = row['confidence'] * 100
+        print(f"🔥 Recommendation {i+1}: '{row['item_A']}' ➔ '{row['item_B']}'")
+        print(f"   - Behavior: {conf:.1f}% of buyers also picked this pair.")
+        print(f"   - Value: This link is {row['lift']:.1f}x stronger than random.\n")
 
 def create_visualizations(df, rules):
     """Genera dos gráficos distintos para el reporte final."""

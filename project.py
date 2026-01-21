@@ -1,4 +1,5 @@
 import pandas as pd
+from tabulate import tabulate
 import matplotlib.pyplot as plt
 from itertools import combinations
 import seaborn as sns
@@ -55,24 +56,23 @@ def main():
                 f"   is your strongest relationship (Lift: {hidden_gem['lift']:.2f}).\n"
             )
 
-            # 7. Generar Visualizaciones Avanzadas
-            create_visualizations(df, rules)
-
             print(f"Found {len(rules)} strong relationships.")
-            print("\n--- TOP RECOMMENDATION RULES (by lift) ---")
-            print(rules[["item_A", "item_B", "support", "confidence", "lift"]].head(5))
+            top_table = rules[["item_A", "item_B", "support", "confidence", "lift"]].head(5)
+            # Mostramos la tabla con bordes de rejilla y formato de 3 decimales
+            print(tabulate(top_table, headers='keys', tablefmt='grid', showindex=False, floatfmt=".3f"))
 
             # Guardamos las recomendaciones en CSV
             rules.to_csv("recommendations.csv", index=False)
-            print("\n Recommendations saved to 'recommendations.csv'")
+            print("\nRecommendations saved to 'recommendations.csv'")
         else:
             print("No association rules found . Try a larger dataset. ")
 
+        # --- AQUÍ GUARDAMOS EL ÚNICO CSV ---
+        output_name = "association_rules.csv"
+        rules.to_csv(output_name, index=False)
+        print(f"\nAll rules saved to '{output_name}'")
         # Generate report visual relattionships
         create_visualizations(df, rules)
-        # Save recommendations
-        rules.to_csv("association_rules.csv", index=False)
-        print("Association rules saved to 'association_rules.csv'.")
 
     except FileNotFoundError:
         sys.exit(f"Error: The file '{file_name}' does not exist in 'data/'.")
@@ -336,7 +336,7 @@ def create_visualizations(df, rules):
     plt.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.5)
     plt.close()
     print(f"\nExecutive Dashboard generated successfully: '{output_path}'")
-    print("   (Open the image to see the strategic analysis)")
+    print(" (Open the image to see the strategic analysis)")
 
 
 if __name__ == "__main__":

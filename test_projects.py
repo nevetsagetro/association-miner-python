@@ -28,3 +28,19 @@ def test_calculate_support():
     # Algo que no existe
     assert calculate_support(baskets, frozenset(["beer"])) == 0
 
+def test_generate_rules():
+    # Caso simple donde A siempre va con B
+    baskets = [
+        frozenset(["coffee", "sugar"]),
+        frozenset(["coffee", "sugar"]),
+        frozenset(["coffee"]),
+    ]
+    rules = generate_rules(baskets, min_support=0.1)
+    
+    # Buscamos la regla coffee -> sugar
+    # Support = 2/3 (0.66), Confidence = (2/3) / (3/3) = 0.66
+    assert not rules.empty
+    row = rules.iloc[0]
+    assert row["item_A"] == "coffee"
+    assert row["item_B"] == "sugar"
+    assert row["support"] == pytest.approx(0.666, 0.01)

@@ -109,6 +109,8 @@ def get_baskets(df, id_col, item_col):
 def generate_rules(baskets, min_support=0.05):
     """Calcula las métricas de valor: Support, Confidence y Lift."""
     total_trans = len(baskets)
+    if total_trans == 0:
+        return pd.DataFrame()
     item_counts = {}
     pair_counts = {}
 
@@ -346,7 +348,7 @@ def create_visualizations(df, rules):
     plt.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.5)
     plt.close()
     print(f"\nExecutive Dashboard generated successfully: '{output_path}'")
-    print(" (Open the image to see the strategic analysis)")
+    print("(Open the image to see the strategic analysis)")
     print("Make with <3 by Nevets Agetro\n")
 
 
